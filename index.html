@@ -11,22 +11,27 @@
     <!-- EX-2: официальный Telegram WebApp SDK. Грузится только с telegram.org, бандлить нельзя. -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-      /* Загрузчик сборки — см. scripts/make-stand.mjs. Версия в адресах ассетов
-         защищает от кэша Telegram; ?r= в адресе страницы перебивает её принудительно. */
+      /* Загрузчик — см. scripts/make-stand.mjs. Версию берём из assets/release.json,
+         поэтому этот файл не меняется от выкатки к выкатке. */
       (function () {
-        var build = "DjnAnrpz";
         var forced = new URLSearchParams(window.location.search).get('r');
-        var v = forced || build;
-        window.__BUILD__ = build;
-        window.__BUILD_FORCED__ = Boolean(forced);
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = './assets/index-gD5UCiQk.css?v=' + encodeURIComponent(v);
-        document.head.appendChild(link);
-        var script = document.createElement('script');
-        script.type = 'module';
-        script.src = './assets/index-DjnAnrpz.js?v=' + encodeURIComponent(v);
-        document.head.appendChild(script);
+        function boot(build) {
+          var v = forced || build || 'dev';
+          window.__BUILD__ = build || 'dev';
+          window.__BUILD_FORCED__ = Boolean(forced);
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = './assets/app.css?v=' + encodeURIComponent(v);
+          document.head.appendChild(link);
+          var script = document.createElement('script');
+          script.type = 'module';
+          script.src = './assets/app.js?v=' + encodeURIComponent(v);
+          document.head.appendChild(script);
+        }
+        fetch('./assets/release.json?ts=' + Date.now(), { cache: 'no-store' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (rel) { boot(rel && rel.build); })
+          .catch(function () { boot(null); });
       })();
     </script>
   </head>
